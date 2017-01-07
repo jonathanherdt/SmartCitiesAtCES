@@ -8,6 +8,7 @@
  */
 
 var Alexa = require('alexa-sdk');
+var fs = require('fs');
 
 var states = {
     STARTMODE: '_STARTMODE',                // Prompt the user to start or restart the game.
@@ -382,7 +383,10 @@ var helper = {
         return true;
     },
 
-    getSafetyIndex: function(country) {
+    /**
+     * returns the safety status for the given country as a string.
+     */
+    getSafetyStatusForCountry: function(country) {
         var safetyStates = {
             // Safety index of 80%+
             SAFE: "safe",
@@ -392,6 +396,23 @@ var helper = {
             UNSAFE: "unsafe",
         }
 
-        return safetyStates.SAFE;
+        var content = fs.readFileSync('UL_Safety_Index_Data/ULSafetyIndexData.csv', 'utf-8');
+        var contentByCountry = content.split('\n');
+        // Skip the table header by starting with index 1
+        for (var i = 1; i < contentByCountry.length; i++) {
+            var countryData = contentByCountry[i].split(',');
+            if(countryData[1] === country){
+                // 6 is the index where ul_safety_index resides
+                if (countryData[6] > 80) {
+                    return safetyStates.SAFE;
+                } else if (countryData[6] > 60) {
+                    return safetyStates.MODERATELY_SAFE;
+                } else {
+                    return safetyStates.UNSAFE;
+                }
+            }
+        }
+
+        return "undefined";
     }
 };
