@@ -418,9 +418,13 @@ var helper = {
         return "undefined";
     },
 
-    getNecessaryVaccinesForCountry: function (country) {
+    /** Gets the necessary vaccines for a given country.
+     *  Calls the callbackfunction with an array of the discovered diseases.
+     */
+    getNecessaryVaccinesForCountry: function (country, callbackFunction) {
         // Scrape https://wwwnc.cdc.gov/travel/destinations/list
         // to find out which vaccines are needed for which countries
+        // Scrape tutorial here: https://www.sitepoint.com/web-scraping-in-node-js/
         var prefix = 'https://wwwnc.cdc.gov/';
         request({
             uri: prefix + 'travel/destinations/list',
@@ -446,10 +450,11 @@ var helper = {
                                 if (disease.children[1].children[0].data === 'Some travelers') {
                                     break;
                                 }
-                            } else {
+                            } else if (disease.children[0].next.children[0].data !== 'Routine vaccines') {
                                 diseasesToReturn.push(disease.children[0].next.children[0].data);
                             }
                         }
+                        callbackFunction(diseasesToReturn);
                     });
                     return;
                 }
