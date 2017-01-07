@@ -9,6 +9,8 @@
 
 var Alexa = require('alexa-sdk');
 var fs = require('fs');
+var cheerio = require('cheerio');
+var request = require("request");
 
 var states = {
     STARTMODE: '_STARTMODE',                // Prompt the user to start or restart the game.
@@ -414,5 +416,44 @@ var helper = {
         }
 
         return "undefined";
+    },
+
+    getNecessaryVaccinesForCountry: function (country) {
+        // Scrape https://wwwnc.cdc.gov/travel/destinations/list
+        // to find out which vaccines are needed for which countries
+        var prefix = 'https://wwwnc.cdc.gov/';
+        request({
+            uri: prefix + 'travel/destinations/list',
+        }, function(error, response, body) {
+            var $ = cheerio.load(body);
+            var contentArea = cheerio.load($("#contentArea").html());
+            var countryLinks = contentArea("a");
+            // Skip the alphabet links by starting at index 25
+            for (var i = 25; i < countryLinks.length; i++) {
+                if(countryLinks[i].children[0].data === country) {
+                    request({
+                        uri: prefix + countryLinks[i].attribs.href,
+                    }, function(error, response, body) {
+                        var $ = cheerio.load(body);
+                        var diseasesArea = cheerio.load($(".disease").html());
+                        var diseases = diseasesArea(".group-head, .traveler-disease");
+                        var diseasesToReturn = [];
+                        for (var i = 0; i < diseases.length; i++) {
+                            var disease = diseases[i];
+                            // Skip everything after 'some travelers because we only want
+                            // to return the most important diseases
+                            if (disease.attribs.class === 'group-head') {
+                                if (disease.children[1].children[0].data === 'Some travelers') {
+                                    break;
+                                }
+                            } else {
+                                diseasesToReturn.push(disease.children[0].next.children[0].data);
+                            }
+                        }
+                    });
+                    return;
+                }
+            }
+        });
     }
 };
