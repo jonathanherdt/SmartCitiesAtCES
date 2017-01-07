@@ -380,5 +380,18 @@ var helper = {
         // was not found so add it as a visited node
         visited[nodeId] = 1;
         return true;
+    },
+
+    getSafetyIndex: function(country) {
+        var safetyStates = {
+            // Safety index of 80%+
+            SAFE: "safe",
+            // Safety index between 60% - 80%
+            MODERATELY_SAFE: "moderately safe",
+            // Safety index of 60%-
+            UNSAFE: "unsafe",
+        }
+
+        return safetyStates.SAFE;
     }
 };
