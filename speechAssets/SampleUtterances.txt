@@ -1,3 +1,6 @@
+HelloWorldIntent tell me more about {Country}
+HelloWorldIntent i want to go to {Country}
+HelloWorldIntent what can you tell me about {Country}
 DescriptionIntent {Description} please
 DescriptionIntent please {Description}
 DescriptionIntent {Description}

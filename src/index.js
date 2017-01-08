@@ -7,226 +7,90 @@
  * http://amzn.to/1LGWsLG
  */
 
-var Alexa = require('alexa-sdk');
+var AlexaSkill = require('./AlexaSkill');
 var fs = require('fs');
 var cheerio = require('cheerio');
 var request = require("request");
 
-var states = {
-    STARTMODE: '_STARTMODE',                // Prompt the user to start or restart the game.
-    ASKMODE: '_ASKMODE',                    // Alexa is asking user the questions.
-    DESCRIPTIONMODE: '_DESCRIPTIONMODE'     // Alexa is describing the final choice and prompting to start again or quit
+/**
+ * App ID for the skill
+ */
+var APP_ID = undefined; //OPTIONAL: replace with "amzn1.echo-sdk-ams.app.[your-unique-value-here]";
+
+var CountrySkill = function () {
+    AlexaSkill.call(this, APP_ID);
 };
 
+CountrySkill.prototype = Object.create(AlexaSkill.prototype);
+CountrySkill.prototype.constructor = CountrySkill;
 
-// Questions
-var nodes = [{ "node": 1, "message": "Do you like working with people", "yes": 2, "no": 3 },
-             { "node": 2, "message": "Do you like caring for others", "yes": 4, "no": 5 },
-             { "node": 3, "message": "Would you like to work during the day", "yes": 6, "no": 7 },
-             { "node": 4, "message": "Can you stand the sight of blood", "yes": 8, "no": 9 },
-             { "node": 5, "message": "Is money the most important thing in your life", "yes": 10, "no": 11 },
-             { "node": 6, "message": "Do you want to work with animals", "yes": 12, "no": 13 },
-             { "node": 7, "message": "Are you active", "yes": 14, "no": 15 },
-
-// Answers & descriptions
-             { "node": 8, "message": "Doctor", "yes": 0, "no": 0, "description": "A physician or medical doctor is a professional who practices medicine." },
-             { "node": 9, "message": "Teacher", "yes": 0, "no": 0, "description": "In education, teachers facilitate student learning, often in a school or academy or perhaps in another environment such as outdoors."},
-             { "node": 10, "message": "Sales person", "yes": 0, "no": 0 , "description": "A salesman is someone who works in sales, with the main function of selling products or services to others."},
-             { "node": 11, "message": "Artist", "yes": 0, "no": 0 , "description": "An artist is a person engaged in one or more of any of a broad spectrum of activities related to creating art, practicing the arts, and, or demonstrating an art."},
-             { "node": 12, "message": "Zookeeper", "yes": 0, "no": 0 , "description": "A zookeeper is a person who manages zoo animals that are kept in captivity for conservation or to be displayed to the public, and are usually responsible for the feeding and daily care of the animals."},
-             { "node": 13, "message": "Software engineer", "yes": 0, "no": 0 , "description": "A software engineer is a person who applies the principles of software engineering to the design, development, maintenance, testing, and evaluation of the software and systems that make computers or anything containing software work."},
-             { "node": 14, "message": "Security Guard", "yes": 0, "no": 0 , "description": "A security guard is a private person who is paid to protect an organization's assets from various hazards such as criminal activity, by utilizing preventative measures. "},
-             { "node": 15, "message": "Lighthouse keeper", "yes": 0, "no": 0 , "description": "A lighthouse keeper is the person responsible for tending and caring for a lighthouse, particularly the light and lens in the days when oil lamps and clockwork mechanisms were used."},
-];
-
-// this is used for keep track of visted nodes when we test for loops in the tree
-var visited;
-
-// These are messages that Alexa says to the user during conversation
-
-// This is the intial welcome message
-var welcomeMessage = "Welcome to decision tree, are you ready to play?";
-
-// This is the message that is repeated if the response to the initial welcome message is not heard
-var repeatWelcomeMessage = "Say yes to start the game or no to quit.";
-
-// this is the message that is repeated if Alexa does not hear/understand the reponse to the welcome message
-var promptToStartMessage = "Say yes to continue, or no to end the game.";
-
-// This is the prompt during the game when Alexa doesnt hear or understand a yes / no reply
-var promptToSayYesNo = "Say yes or no to answer the question.";
-
-// This is the response to the user after the final question when Alex decides on what group choice the user should be given
-var decisionMessage = "I think you would make a good";
-
-// This is the prompt to ask the user if they would like to hear a short description of thier chosen profession or to play again
-var playAgainMessage = "Say 'tell me more' to hear a short description for this profession, or do you want to play again?";
-
-// this is the help message during the setup at the beginning of the game
-var helpMessage = "I will ask you some questions that will identify what you would be best at. Want to start now?";
-
-// This is the goodbye message when the user has asked to quit the game
-var goodbyeMessage = "Ok, see you next time!";
-
-var speechNotFoundMessage = "Could not find speech for node";
-
-var nodeNotFoundMessage = "In nodes array could not find node";
-
-var descriptionNotFoundMessage = "Could not find description for node";
-
-var loopsDetectedMessage = "A repeated path was detected on the node tree, please fix before continuing";
-
-var utteranceTellMeMore = "tell me more";
-
-var utterancePlayAgain = "play again";
-
-// the first node that we will use
-var START_NODE = 1;
-
-// --------------- Handlers -----------------------
-
-// Called when the session starts.
-exports.handler = function (event, context, callback) {
-    var alexa = Alexa.handler(event, context);
-    alexa.registerHandlers(newSessionHandler, startGameHandlers, askQuestionHandlers, descriptionHandlers);
-    alexa.execute();
+CountrySkill.prototype.eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
+    //console.log("onSessionStarted requestId: " + sessionStartedRequest.requestId + ", sessionId: " + session.sessionId);
+    // any initialization logic goes here
 };
 
-// set state to start up and  welcome the user
-var newSessionHandler = {
-  'LaunchRequest': function () {
-    this.handler.state = states.STARTMODE;
-    this.emit(':ask', welcomeMessage, repeatWelcomeMessage);
-  },'AMAZON.HelpIntent': function () {
-    this.handler.state = states.STARTMODE;
-    this.emit(':ask', helpMessage, helpMessage);
-  },
-  'Unhandled': function () {
-    this.handler.state = states.STARTMODE;
-    this.emit(':ask', promptToStartMessage, promptToStartMessage);
-  }
+CountrySkill.prototype.eventHandlers.onLaunch = function (launchRequest, session, response) {
+    //console.log("onLaunch requestId: " + launchRequest.requestId + ", sessionId: " + session.sessionId);
+    handleNewFactRequest(response);
 };
 
-// --------------- Functions that control the skill's behavior -----------------------
+/**
+ * Overridden to show that a subclass can override this function to teardown session state.
+ */
+CountrySkill.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequest, session) {
+    //console.log("onSessionEnded requestId: " + sessionEndedRequest.requestId + ", sessionId: " + session.sessionId);
+    // any cleanup logic goes here
+};
 
-// Called at the start of the game, picks and asks first question for the user
-var startGameHandlers = Alexa.CreateStateHandler(states.STARTMODE, {
-    'AMAZON.YesIntent': function () {
+CountrySkill.prototype.intentHandlers = {
+    "HelloWorldIntent": function (intent, session, response) {
+        handleCountryRequest(intent,response);
+    },
 
-        // ---------------------------------------------------------------
-        // check to see if there are any loops in the node tree - this section can be removed in production code
-        visited = [nodes.length];
-        var loopFound = helper.debugFunction_walkNode(START_NODE);
-        if( loopFound === true)
-        {
-            // comment out this line if you know that there are no loops in your decision tree
-             this.emit(':tell', loopsDetectedMessage);
+    "AMAZON.HelpIntent": function (intent, session, response) {
+        response.ask("You can say tell me more about a country, or, you can say exit... What can I help you with?", "What can I help you with?");
+    },
+
+    "AMAZON.StopIntent": function (intent, session, response) {
+        var speechOutput = "Goodbye";
+        response.tell(speechOutput);
+    },
+
+    "AMAZON.CancelIntent": function (intent, session, response) {
+        var speechOutput = "Goodbye";
+        response.tell(speechOutput);
+    }
+};
+
+function handleCountryRequest(intent,response) {
+    var country_input = intent.slots.Country.value;
+    console.log("Requested country: ");
+    console.log(country_input);
+
+    // call helper function to get country information
+    var safety_status = helper.getSafetyStatusForCountry(country_input);
+
+    // Create speech output
+    var speechOutput = "Here's more information about " + country_input + ". ";
+    speechOutput += country_input + " is " + safety_status + ".";
+
+    var vaccine_satus = helper.getNecessaryVaccinesForCountry(country_input, function(diseases) {
+        if(diseases.length > 0){
+            speechOutput += " You need the following vaccines before you go there: ";
+            for (var i = 0; i < diseases.length; i++) {
+                speechOutput += diseases[i] + ",";
+            }
         }
-        // ---------------------------------------------------------------
+        response.tell(speechOutput + ".");
+    });
+}
 
-        // set state to asking questions
-        this.handler.state = states.ASKMODE;
-
-        // ask first question, the response will be handled in the askQuestionHandler
-        var message = helper.getSpeechForNode(START_NODE);
-
-        // record the node we are on
-        this.attributes.currentNode = START_NODE;
-
-        // ask the first question
-        this.emit(':ask', message, message);
-    },
-    'AMAZON.NoIntent': function () {
-        // Handle No intent.
-        this.emit(':tell', goodbyeMessage);
-    },
-    'AMAZON.StopIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-    'AMAZON.CancelIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-    'AMAZON.StartOverIntent': function () {
-         this.emit(':ask', promptToStartMessage, promptToStartMessage);
-    },
-    'AMAZON.HelpIntent': function () {
-        this.emit(':ask', helpMessage, helpMessage);
-    },
-    'Unhandled': function () {
-        this.emit(':ask', promptToStartMessage, promptToStartMessage);
-    }
-});
-
-
-// user will have been asked a question when this intent is called. We want to look at their yes/no
-// response and then ask another question. If we have asked more than the requested number of questions Alexa will
-// make a choice, inform the user and then ask if they want to play again
-var askQuestionHandlers = Alexa.CreateStateHandler(states.ASKMODE, {
-
-    'AMAZON.YesIntent': function () {
-        // Handle Yes intent.
-        helper.yesOrNo(this,'yes');
-    },
-    'AMAZON.NoIntent': function () {
-        // Handle No intent.
-         helper.yesOrNo(this, 'no');
-    },
-    'AMAZON.HelpIntent': function () {
-        this.emit(':ask', promptToSayYesNo, promptToSayYesNo);
-    },
-    'AMAZON.StopIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-    'AMAZON.CancelIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-    'AMAZON.StartOverIntent': function () {
-        // reset the game state to start mode
-        this.handler.state = states.STARTMODE;
-        this.emit(':ask', welcomeMessage, repeatWelcomeMessage);
-    },
-    'Unhandled': function () {
-        this.emit(':ask', promptToSayYesNo, promptToSayYesNo);
-    }
-});
-
-// user has heard the final choice and has been asked if they want to hear the description or to play again
-var descriptionHandlers = Alexa.CreateStateHandler(states.DESCRIPTIONMODE, {
-
- 'AMAZON.YesIntent': function () {
-        // Handle Yes intent.
-        // reset the game state to start mode
-        this.handler.state = states.STARTMODE;
-        this.emit(':ask', welcomeMessage, repeatWelcomeMessage);
-    },
-    'AMAZON.NoIntent': function () {
-        // Handle No intent.
-        this.emit(':tell', goodbyeMessage);
-    },
-    'AMAZON.HelpIntent': function () {
-        this.emit(':ask', promptToSayYesNo, promptToSayYesNo);
-    },
-    'AMAZON.StopIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-    'AMAZON.CancelIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-    'AMAZON.StartOverIntent': function () {
-        // reset the game state to start mode
-        this.handler.state = states.STARTMODE;
-        this.emit(':ask', welcomeMessage, repeatWelcomeMessage);
-    },
-    'DescriptionIntent': function () {
-        //var reply = this.event.request.intent.slots.Description.value;
-        //console.log('HEARD: ' + reply);
-        helper.giveDescription(this);
-      },
-
-    'Unhandled': function () {
-        this.emit(':ask', promptToSayYesNo, promptToSayYesNo);
-    }
-});
+// Create the handler that responds to the Alexa Request.
+exports.handler = function (event, context) {
+    // Create an instance of the SpaceGeek skill.
+    var skill = new CountrySkill();
+    skill.execute(event, context);
+};
 
 // --------------- Helper Functions  -----------------------
 

@@ -2,7 +2,16 @@
 	"intents": [{
       "intent": "AMAZON.YesIntent",
       "slots": []
-    }, {
+    },
+     {
+      "intent": "HelloWorldIntent",
+      "slots": [
+	    {
+	      "name": "Country",
+	      "type": "AMAZON.Country"
+	    }]
+    },
+     {
       "intent": "AMAZON.NoIntent",
       "slots": []
     }, {
