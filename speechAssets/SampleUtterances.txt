@@ -1,16 +1,3 @@
-HelloWorldIntent tell me more about {Country}
-HelloWorldIntent i want to go to {Country}
-HelloWorldIntent what can you tell me about {Country}
-DescriptionIntent {Description} please
-DescriptionIntent please {Description}
-DescriptionIntent {Description}
-DescriptionIntent can you {Description}
-DescriptionIntent tell me about that
-DescriptionIntent description please
-AMAZON.StopIntent stop
-AMAZON.StopIntent off
-AMAZON.StopIntent shut up
-AMAZON.StartOverIntent start over
-AMAZON.StartOverIntent restart
-AMAZON.StartOverIntent start again
-AMAZON.StartOverIntent play again
+GetCountryInformationIntent tell me more about {Country}
+GetCountryInformationIntent i want to go to {Country}
+GetCountryInformationIntent what can you tell me about {Country}

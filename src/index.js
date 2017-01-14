@@ -43,7 +43,7 @@ CountrySkill.prototype.eventHandlers.onSessionEnded = function (sessionEndedRequ
 };
 
 CountrySkill.prototype.intentHandlers = {
-    "HelloWorldIntent": function (intent, session, response) {
+    "GetCountryInformationIntent": function (intent, session, response) {
         handleCountryRequest(intent,response);
     },
 
