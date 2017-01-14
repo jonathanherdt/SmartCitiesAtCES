@@ -253,6 +253,7 @@ var helper = {
      * returns the safety status for the given country as a string.
      */
     getSafetyStatusForCountry: function(country) {
+        country = country.toLowerCase();
         var safetyStates = {
             // Safety index of 80%+
             SAFE: "safe",
@@ -267,7 +268,7 @@ var helper = {
         // Skip the table header by starting with index 1
         for (var i = 1; i < contentByCountry.length; i++) {
             var countryData = contentByCountry[i].split(',');
-            if(countryData[1] === country){
+            if(countryData[1].toLowerCase() === country){
                 // 6 is the index where ul_safety_index resides
                 if (countryData[6] > 80) {
                     return safetyStates.SAFE;
@@ -286,6 +287,7 @@ var helper = {
      *  Calls the callbackfunction with an array of the discovered diseases.
      */
     getNecessaryVaccinesForCountry: function (country, callbackFunction) {
+        country = country.toLowerCase();
         // Scrape https://wwwnc.cdc.gov/travel/destinations/list
         // to find out which vaccines are needed for which countries
         // Scrape tutorial here: https://www.sitepoint.com/web-scraping-in-node-js/
@@ -298,7 +300,7 @@ var helper = {
             var countryLinks = contentArea("a");
             // Skip the alphabet links by starting at index 25
             for (var i = 25; i < countryLinks.length; i++) {
-                if(countryLinks[i].children[0].data === country) {
+                if(countryLinks[i].children[0].data.toLowerCase() === country) {
                     request({
                         uri: prefix + countryLinks[i].attribs.href,
                     }, function(error, response, body) {
@@ -326,3 +328,8 @@ var helper = {
         });
     }
 };
+
+console.log(helper.getSafetyStatusForCountry('nigeria'));
+helper.getNecessaryVaccinesForCountry('nigeria', function(result){
+    console.log(result);
+});
